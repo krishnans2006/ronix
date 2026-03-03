@@ -1,0 +1,25 @@
+[package]
+name = "ronix"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.74"
+description = "Serialize Rust structs to Nix expressions — the bridge between serde and NixOS"
+license = "MIT"
+repository = "https://codeberg.org/caniko/ronix"
+homepage = "https://codeberg.org/caniko/ronix"
+keywords = ["nix", "nixos", "serde", "serializer", "ron"]
+categories = ["encoding", "config"]
+readme = "README.md"
+exclude = ["nix/", "flake.nix", "flake.lock", ".claude/"]
+
+[features]
+cli = ["dep:clap"]
+
+[dependencies]
+clap = { version = "4", features = ["derive"], optional = true }
+ron = "0.9"
+serde = "1"
+thiserror = "2"
+
+[dev-dependencies]
+serde = { version = "1", features = ["derive"] }

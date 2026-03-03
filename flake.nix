@@ -1,0 +1,111 @@
+{
+  description = "ronix — RON ↔ Nix interop: serde serializer for Nix expressions + toRON/fromRON Nix library";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    crane.url = "github:ipetkov/crane";
+  };
+
+  outputs =
+    {
+      self,
+      nixpkgs,
+      crane,
+      ...
+    }:
+    let
+      supportedSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
+      forSystems = nixpkgs.lib.genAttrs supportedSystems;
+      pkgsFor = system: nixpkgs.legacyPackages.${system};
+      craneLibFor = system: crane.mkLib (pkgsFor system);
+
+      packageFor =
+        system:
+        let
+          craneLib = craneLibFor system;
+        in
+        craneLib.buildPackage {
+          pname = "ronix";
+          src = craneLib.cleanCargoSource ./.;
+          strictDeps = true;
+        };
+    in
+    {
+      # ── Nix library ────────────────────────────────────────────────
+      # Usage: ronix.lib.toRON, ronix.lib.fromRON, etc.
+      lib = import ./nix/lib.nix { inherit (nixpkgs) lib; };
+
+      # ── NixOS helpers ──────────────────────────────────────────────
+      # Usage: ronix.nixosHelpers.mkRonService { ... }
+      nixosHelpers = import ./nix/helpers.nix { ronixLib = self.lib; };
+
+      # ── Overlay ────────────────────────────────────────────────────
+      # Usage: nixpkgs.overlays = [ ronix.overlays.default ];
+      overlays.default = _final: _prev: {
+        ronix = self.packages.${_prev.stdenv.hostPlatform.system}.default;
+      };
+
+      # ── Packages ───────────────────────────────────────────────────
+      packages = forSystems (system: {
+        default = packageFor system;
+        ronix = packageFor system;
+      });
+
+      # ── Checks (cargo test) ───────────────────────────────────────
+      checks = forSystems (
+        system:
+        let
+          craneLib = craneLibFor system;
+          src = craneLib.cleanCargoSource ./.;
+          commonArgs = {
+            inherit src;
+            pname = "ronix";
+            strictDeps = true;
+          };
+          cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+        in
+        {
+          ronix-tests = craneLib.cargoTest (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+              cargoExtraArgs = "--all-features";
+            }
+          );
+
+          ronix-clippy = craneLib.cargoClippy (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+              cargoExtraArgs = "--all-features";
+              cargoClippyExtraArgs = "--all-targets -- -D warnings";
+            }
+          );
+
+          ronix-fmt = craneLib.cargoFmt { inherit src; pname = "ronix"; };
+        }
+      );
+
+      # ── Dev shell ──────────────────────────────────────────────────
+      devShells = forSystems (
+        system:
+        let
+          pkgs = pkgsFor system;
+        in
+        {
+          default = pkgs.mkShell {
+            inputsFrom = [ self.packages.${system}.default ];
+            packages = with pkgs; [
+              cargo
+              rustc
+              clippy
+              rustfmt
+            ];
+          };
+        }
+      );
+    };
+}
