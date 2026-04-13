@@ -1,8 +1,8 @@
 # ronix
 
-Serialize Rust structs to Nix expressions — the bridge between [serde](https://serde.rs) and NixOS.
+The bridge between [RON](https://github.com/ron-rs/ron/) and Nix.
 
-ronix also ships a **Nix library** (`toRON` / `fromRON`) so the conversion works in both directions.
+A Rust library and Nix flake for bidirectional conversion between RON and Nix expressions. Serialize Rust structs to Nix attribute sets, parse RON strings into Nix, or go the other way with `toRON` / `fromRON` in pure Nix.
 
 ## Quick start
 
@@ -160,6 +160,10 @@ nix build    # build the crate
 nix flake check   # run tests, clippy, and fmt
 nix develop  # enter a dev shell with cargo, clippy, rustfmt
 ```
+
+## CI
+
+Woodpecker CI on Codeberg runs `nix flake check` (tests, clippy, and fmt) on every push and pull request.
 
 ## License
 
