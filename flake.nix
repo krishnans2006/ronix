@@ -4,6 +4,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     crane.url = "github:ipetkov/crane";
+    plinth = {
+      url = "git+https://codeberg.org/caniko/plinth.git?ref=refs/heads/trunk";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -11,6 +15,7 @@
       self,
       nixpkgs,
       crane,
+      plinth,
       ...
     }:
     let
@@ -52,6 +57,18 @@
       packages = forSystems (system: {
         default = packageFor system;
         ronix = packageFor system;
+        website = plinth.lib.${system}.mkProjectSite {
+          pname = "ronix-website";
+          domain = "ronix.tartanoglu.com";
+          configPath = ./website/plinth-project.toml;
+        };
+        site = self.packages.${system}.website;
+      });
+
+      apps = forSystems (system: {
+        deploy-pages = plinth.lib.${system}.mkDeployPagesApp {
+          domain = "ronix.tartanoglu.com";
+        };
       });
 
       # ── Checks (cargo test) ───────────────────────────────────────
