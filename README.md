@@ -1,5 +1,9 @@
 # ronix
 
+<!-- simit:badges:start -->
+[![CI](https://img.shields.io/badge/CI-drift-2088ff)](.forgejo/workflows/ci.yaml) [![Nix](https://img.shields.io/badge/Nix-managed-5277c3)](flake.nix) [![crates.io](https://img.shields.io/badge/crates.io-ready-f46623)](https://crates.io/crates/ronix)
+<!-- simit:badges:end -->
+
 The bridge between [RON](https://github.com/ron-rs/ron/) and Nix.
 
 A Rust library and Nix flake for bidirectional conversion between RON and Nix expressions. Serialize Rust structs to Nix attribute sets, parse RON strings into Nix, or go the other way with `toRON` / `fromRON` in pure Nix.
