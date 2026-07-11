@@ -5,40 +5,77 @@ on:
   push:
     branches: ["**"]
     tags-ignore: ["**"]
-  pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
-    runs-on: atlas
-    container: rust:1.74-bookworm
+  atlas-nix-trusted:
+    runs-on: atlas-nix-trusted
+    env:
+      NIX_CONFIG: "experimental-features = nix-command flakes"
+      XDG_CACHE_HOME: "/tmp/.cache"
+      CARGO_HOME: "/tmp/.cargo"
     steps:
       - name: Checkout
         uses: https://code.forgejo.org/actions/checkout@v4
 
-      - name: Install Rust components
-        run: rustup component add clippy rustfmt
+      - name: Add cargo bin to PATH
+        run: echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
 
-      - name: Cache cargo bin (tools)
-        uses: https://code.forgejo.org/actions/cache@v4
-        with:
-          path: ~/.cargo/bin
-          key: cargo-bin-${{ runner.os }}-${{ hashFiles('.forgejo/workflows/*.yaml') }}
+      - name: Check flake
+        run: nix flake check
 
-      - name: Test all features
-        run: cargo test --all-features
+  codeberg-tiny:
+    needs: [atlas-nix-trusted]
+    runs-on: codeberg-tiny
+    env:
+      NIX_CONFIG: "experimental-features = nix-command flakes"
+      XDG_CACHE_HOME: "/tmp/.cache"
+      CARGO_HOME: "/tmp/.cargo"
+    steps:
+      - name: Checkout
+        uses: https://code.forgejo.org/actions/checkout@v4
 
-      - name: Test no default features
-        run: cargo test --no-default-features
+      - name: Add cargo bin to PATH
+        run: echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
 
-      - name: Clippy all features
-        run: cargo clippy --all-targets --all-features -- --deny warnings
+      - name: Format check
+        run: nix develop -c cargo fmt --all -- --check
 
-      - name: Clippy no default features
-        run: cargo clippy --all-targets --no-default-features -- --deny warnings
+  codeberg-medium:
+    needs: [atlas-nix-trusted]
+    runs-on: codeberg-medium
+    env:
+      NIX_CONFIG: "experimental-features = nix-command flakes"
+      XDG_CACHE_HOME: "/tmp/.cache"
+      CARGO_HOME: "/tmp/.cargo"
+    steps:
+      - name: Checkout
+        uses: https://code.forgejo.org/actions/checkout@v4
+
+      - name: Add cargo bin to PATH
+        run: echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Test
+        run: nix develop -c cargo test
 
       - name: Package crate
-        run: cargo package --allow-dirty
+        run: nix develop -c cargo package
+  codeberg-small:
+    needs: [atlas-nix-trusted]
+    runs-on: codeberg-small
+    env:
+      NIX_CONFIG: "experimental-features = nix-command flakes"
+      XDG_CACHE_HOME: "/tmp/.cache"
+      CARGO_HOME: "/tmp/.cargo"
+    steps:
+      - name: Checkout
+        uses: https://code.forgejo.org/actions/checkout@v4
+
+      - name: Add cargo bin to PATH
+        run: echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Clippy
+        run: nix develop -c cargo clippy --all-targets -- --deny warnings

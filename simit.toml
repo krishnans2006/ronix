@@ -1,2 +1,8 @@
 [ci]
 runner = "atlas"
+runtime = "nix"
+step_runners = { cargo-clippy = "codeberg-small", cargo-doc = "codeberg-small", cargo-fmt = "codeberg-tiny", cargo-package = "codeberg-medium", cargo-test = "codeberg-medium", nix-check = "atlas-nix-trusted", quality-tools = "codeberg-small" }
+
+[ci.pages]
+repo = "caniko/ronix"
+canonical_domain = "ronix.tartanoglu.com"

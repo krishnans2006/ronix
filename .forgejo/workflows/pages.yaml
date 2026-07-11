@@ -12,13 +12,18 @@ concurrency:
 
 jobs:
   publish:
-    runs-on: atlas-nix-trusted
+    runs-on: atlas
     env:
       NIX_CONFIG: "experimental-features = nix-command flakes"
     steps:
       - name: Checkout
         uses: https://code.forgejo.org/actions/checkout@v4
 
+      - name: Validate Pages domain
+        run: |
+          nix build .#site --no-link --out-link result-pages-site
+          test -f result-pages-site/.domains
+          grep -qx ronix.tartanoglu.com result-pages-site/.domains
       - name: Deploy Codeberg Pages
         env:
           CODEBERG_TOKEN: ${{ secrets.codeberg_token }}
