@@ -2,6 +2,7 @@
   description = "ronix — RON ↔ Nix interop: serde serializer for Nix expressions + toRON/fromRON Nix library";
 
   inputs = {
+    rs-harbor.url = "git+https://codeberg.org/caniko/rs-harbor.git?ref=trunk&rev=9bfa8bdb0ecb22d7bc11448665f7fbaebae7a759";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     crane.url = "github:ipetkov/crane";
     plinth = {
@@ -13,6 +14,7 @@
   outputs =
     {
       self,
+      rs-harbor,
       nixpkgs,
       crane,
       plinth,
@@ -31,12 +33,20 @@
         system:
         let
           craneLib = craneLibFor system;
+          pkgs = pkgsFor system;
+          buildCache = rs-harbor.lib.mkBuildCachePolicy {
+            inherit pkgs;
+            sccachePackage = rs-harbor.packages.${system}.sccache;
+            cacheRoot = null;
+            namespaceScope = "canix-rust";
+            namespaceGeneration = 5;
+          };
         in
-        craneLib.buildPackage {
+        buildCache.withRustCache { package = craneLib.buildPackage {
           pname = "ronix";
           src = craneLib.cleanCargoSource ./.;
           strictDeps = true;
-        };
+        }; };
     in
     {
       # ── Nix library ────────────────────────────────────────────────
