@@ -62,7 +62,7 @@ jobs:
         run: nix develop -c cargo test
 
       - name: Package crate
-        run: nix develop -c cargo package
+        run: nix develop -c cargo package --allow-dirty --list
   codeberg-small:
     needs: [atlas-nix-trusted]
     runs-on: codeberg-small

@@ -2,6 +2,9 @@
 runner = "atlas-nix-trusted"
 runtime = "nix"
 step_runners = { cargo-clippy = "codeberg-small", cargo-doc = "codeberg-small", cargo-fmt = "codeberg-tiny", cargo-package = "codeberg-medium", cargo-test = "codeberg-medium", nix-check = "atlas-nix-trusted", quality-tools = "codeberg-small" }
+provider = "actions"
+platform = "forgejo"
+publish_crates = true
 
 [ci.pages]
 repo = "caniko/ronix"
