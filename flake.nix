@@ -2,7 +2,7 @@
   description = "ronix — RON ↔ Nix interop: serde serializer for Nix expressions + toRON/fromRON Nix library";
 
   inputs = {
-    rs-harbor.url = "git+https://codeberg.org/caniko/rs-harbor.git?ref=trunk&rev=9bfa8bdb0ecb22d7bc11448665f7fbaebae7a759";
+    rs-harbor.url = "git+https://codeberg.org/caniko/rs-harbor.git?ref=trunk&rev=c26b735eede8078f795651c4a9cbf0be8733b221";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     crane.url = "github:ipetkov/crane";
     plinth = {
@@ -27,7 +27,8 @@
       ];
       forSystems = nixpkgs.lib.genAttrs supportedSystems;
       pkgsFor = system: nixpkgs.legacyPackages.${system};
-      craneLibFor = system: crane.mkLib (pkgsFor system);
+      toolchainFor = system: rs-harbor.lib.mkToolchain { pkgs = pkgsFor system; toolchainProfile = "stable"; };
+      craneLibFor = system: (crane.mkLib (pkgsFor system)).overrideToolchain (toolchainFor system);
 
       packageFor =
         system:
