@@ -26,9 +26,12 @@
         "aarch64-linux"
       ];
       forSystems = nixpkgs.lib.genAttrs supportedSystems;
-      pkgsFor = system: nixpkgs.legacyPackages.${system};
+      pkgsFor = system: import nixpkgs {
+        inherit system;
+        overlays = [(import rs-harbor.inputs.rust-overlay)];
+      };
       toolchainFor = system: rs-harbor.lib.mkToolchain { pkgs = pkgsFor system; toolchainProfile = "stable"; };
-      craneLibFor = system: (crane.mkLib (pkgsFor system)).overrideToolchain (toolchainFor system);
+      craneLibFor = system: (toolchainFor system).craneLib;
 
       packageFor =
         system:
