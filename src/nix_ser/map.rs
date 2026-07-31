@@ -4,6 +4,16 @@ use super::error::Error;
 use super::helpers::indent_str;
 use super::serializer::NixSerializer;
 
+/// Valid Nix identifiers follow `[A-Za-z_][A-Za-z0-9_'-]*`.
+/// See: https://releases.nixos.org/nix/nix-2.28.2/manual/language/identifiers.html#identifiers
+fn is_valid_ident(s: &str) -> bool {
+    let mut chars = s.chars();
+    if !matches!(chars.next(), Some(c) if c.is_ascii_alphabetic() || c == '_') {
+        return false;
+    }
+    chars.all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '\'' | '-'))
+}
+
 pub(crate) struct NixMapSerializer {
     pub(crate) entries: Vec<(String, String)>,
     pub(crate) current_key: Option<String>,
@@ -20,8 +30,15 @@ impl ser::SerializeMap for NixMapSerializer {
         };
         let key_str = key.serialize(serializer)?;
         // Strip quotes from string keys for Nix attribute names
-        let key_str = key_str.trim_matches('"').to_string();
-        self.current_key = Some(key_str);
+        let stripped = key_str.trim_matches('"').to_string();
+
+        // Only strip the key if it is a valid identifier
+        self.current_key = Some(if is_valid_ident(&stripped) {
+            stripped
+        } else {
+            key_str
+        });
+
         Ok(())
     }
 

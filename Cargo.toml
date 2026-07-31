@@ -2,7 +2,7 @@
 name = "ronix"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.74"
+rust-version = "1.97"
 description = "Serialize Rust structs to Nix expressions — the bridge between serde and NixOS"
 license = "MIT OR Apache-2.0"
 repository = "https://codeberg.org/caniko/ronix"

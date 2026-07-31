@@ -225,6 +225,17 @@ mod tests {
     }
 
     #[test]
+    fn serialize_map_key_with_invalid_identifier_keeps_quotes() {
+        use std::collections::HashMap;
+        let mut m = HashMap::new();
+        m.insert("/".to_string(), "device".to_string());
+        m.insert("plain-key".to_string(), "value".to_string());
+        let nix = to_nix(&m).unwrap();
+        assert!(nix.contains(r#""/" = "device";"#));
+        assert!(nix.contains("plain-key = \"value\";"));
+    }
+
+    #[test]
     fn serialize_vec_of_strings() {
         let v = vec!["cpu", "gpu"];
         let nix = to_nix(&v).unwrap();
