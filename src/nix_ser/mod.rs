@@ -230,9 +230,11 @@ mod tests {
         let mut m = HashMap::new();
         m.insert("/".to_string(), "device".to_string());
         m.insert("plain-key".to_string(), "value".to_string());
+        m.insert("if".to_string(), "keyword".to_string());
         let nix = to_nix(&m).unwrap();
         assert!(nix.contains(r#""/" = "device";"#));
         assert!(nix.contains("plain-key = \"value\";"));
+        assert!(nix.contains(r#""if" = "keyword";"#));
     }
 
     #[test]
@@ -267,8 +269,7 @@ mod tests {
 
     #[test]
     fn ron_to_nix_module_wraps() {
-        let nix =
-            ron_to_nix_module(r#"(poll_ms: 2000)"#, "services.myapp.settings").unwrap();
+        let nix = ron_to_nix_module(r#"(poll_ms: 2000)"#, "services.myapp.settings").unwrap();
         assert!(nix.starts_with("_: {\n"));
         assert!(nix.contains("services.myapp.settings ="));
         assert!(nix.contains("poll_ms = 2000;"));

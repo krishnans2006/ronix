@@ -4,9 +4,16 @@ use super::error::Error;
 use super::helpers::indent_str;
 use super::serializer::NixSerializer;
 
-/// Valid Nix identifiers follow `[A-Za-z_][A-Za-z0-9_'-]*`.
+/// Valid Nix identifiers follow `[A-Za-z_][A-Za-z0-9_'-]*` and exclude keywords.
 /// See: https://releases.nixos.org/nix/nix-2.28.2/manual/language/identifiers.html#identifiers
 fn is_valid_ident(s: &str) -> bool {
+    if matches!(
+        s,
+        "assert" | "else" | "if" | "in" | "inherit" | "let" | "or" | "rec" | "then" | "with"
+    ) {
+        return false;
+    }
+
     let mut chars = s.chars();
     if !matches!(chars.next(), Some(c) if c.is_ascii_alphabetic() || c == '_') {
         return false;
